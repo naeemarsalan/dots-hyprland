@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Run an hypridle idle action only when the machine is NOT (on AC + max power profile).
+# Plugged in with the "performance" power profile => stay fully awake, screen on.
+#
+# Usage: hypridle-guard <command> [args...]
+# Exits 0 without running anything when the action is suppressed.
+
+on_ac() {
+    local online type
+    for online in /sys/class/power_supply/*/online; do
+        [[ -r "$online" ]] || continue
+        read -r type < "${online%/online}/type" 2>/dev/null || continue
+        [[ "$type" == "Mains" ]] || continue
+        [[ "$(< "$online")" == "1" ]] && return 0
+    done
+    return 1
+}
+
+max_power() {
+    local profile
+    profile=$(busctl --system get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles \
+        net.hadess.PowerProfiles ActiveProfile 2>/dev/null) || return 1
+    [[ "$profile" == 's "performance"' ]]
+}
+
+if on_ac && max_power; then
+    exit 0
+fi
+
+exec "$@"
