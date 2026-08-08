@@ -3,6 +3,7 @@
 [copr]
 repos = [
   "ririko66z/dots-hyprland",
+  "errornointernet/quickshell",
   "sdegler/hyprland",
   "deltacopy/darkly",
   "alternateved/eza",
